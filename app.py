@@ -4,7 +4,7 @@ import os
 import hashlib
 
 # Set up Streamlit page
-st.set_page_config(page_title="Blood Bank Finder", page_icon="💉", layout="centered")
+st.set_page_config(page_title="Blood Bank Finder", page_icon="💉", layout="wide")
 
 # Load custom CSS for styling
 try:
@@ -33,9 +33,8 @@ def save_user_data(data):
 # Initialize user data
 user_data = load_user_data()
 
-# Tabs for Navigation (removed "Find Blood Banks")
+# Tabs for Navigation
 tabs = st.tabs(["Create Account", "Login"])
-
 with tabs[0]:
     st.header("🔐 Create Account")
     name = st.text_input("Name")
@@ -53,7 +52,6 @@ with tabs[0]:
         elif username in user_data["Username"].values:
             st.error("Username already exists. Choose another one!")
         else:
-            # Save user data
             hashed_pw = hash_password(password)
             new_user = pd.DataFrame(
                 [[name, age, blood_group, username, hashed_pw]],
@@ -75,12 +73,45 @@ with tabs[1]:
             & (user_data["Password"] == hashed_pw)
         ]
         if not user.empty:
-            st.success(f"Welcome back, {user.iloc[0]['Name']}!")
             st.session_state["logged_in"] = True
             st.session_state["username"] = login_username
+            st.session_state["name"] = user.iloc[0]["Name"]
+            st.experimental_rerun()
         else:
             st.error("Invalid username or password.")
 
-# If a user logs in, additional functionality can be added here
+# Dashboard for logged-in users
 if st.session_state.get("logged_in", False):
-    st.write("Welcome to your dashboard!")
+    st.sidebar.header(f"Welcome, {st.session_state['name']}! 😊")
+    st.sidebar.button("Logout", on_click=lambda: st.session_state.clear())
+
+    st.title("📍 Blood Bank Finder Dashboard")
+
+    # Dummy blood bank data
+    blood_banks = {
+        "Saddar": [
+            {"name": "City Blood Bank", "contact": "0301-1234567", "blood_groups": ["A+", "B+"]},
+            {"name": "Quick Blood Bank", "contact": "0302-9876543", "blood_groups": ["O+", "AB+"]},
+        ],
+        "Gulshan-e-Iqbal": [
+            {"name": "LifeSaver Blood Center", "contact": "0302-2345678", "blood_groups": ["O-", "A+"]},
+            {"name": "Emergency Blood Bank", "contact": "0301-7654321", "blood_groups": ["B+", "AB+"]},
+        ],
+    }
+
+    # User selects area
+    selected_area = st.selectbox("Select an Area of Karachi", list(blood_banks.keys()))
+
+    # Display blood banks
+    st.write(f"🩸 **Blood Banks in {selected_area}:**")
+    for bank in blood_banks[selected_area]:
+        st.markdown(
+            f"""
+            <div class="blood-bank">
+                <h4>{bank['name']}</h4>
+                <p><strong>Contact:</strong> {bank['contact']}</p>
+                <p><strong>Available Blood Groups:</strong> {', '.join(bank['blood_groups'])}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
