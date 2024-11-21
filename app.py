@@ -10,6 +10,7 @@ st.set_page_config(page_title="Blood Bank Finder", page_icon="💉", layout="cen
 with open("css/style.css", "r") as css_file:
     st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
 
+
 # Helper Functions
 def hash_password(password):
     """Hashes a password using SHA256."""
