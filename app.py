@@ -6,9 +6,7 @@ import hashlib
 # Set up Streamlit page
 st.set_page_config(page_title="Blood Bank Finder", page_icon="💉", layout="centered")
 
-# Custom CSS for styling (Assuming this is already set up)
-with open("css/style.css", "r") as css_file:
-    st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
+
 
 
 # Helper Functions
