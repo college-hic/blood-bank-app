@@ -6,9 +6,12 @@ import hashlib
 # Set up Streamlit page
 st.set_page_config(page_title="Blood Bank Finder", page_icon="💉", layout="centered")
 
-# Custom CSS for styling
-with open("css/style.css", "r") as css_file:
-    st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
+# Load custom CSS for styling
+try:
+    with open("css/style.css", "r") as css_file:
+        st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
+except FileNotFoundError:
+    st.warning("Custom styles are missing. Default styles will be used.")
 
 # Helper Functions
 def hash_password(password):
@@ -24,6 +27,7 @@ def load_user_data():
 
 def save_user_data(data):
     """Saves user data to CSV."""
+    os.makedirs("user_data", exist_ok=True)
     data.to_csv("user_data/users.csv", index=False)
 
 # Initialize user data
@@ -31,6 +35,7 @@ user_data = load_user_data()
 
 # Tabs for Navigation
 tabs = st.tabs(["Create Account", "Login", "Find Blood Banks"])
+
 with tabs[0]:
     st.header("🔐 Create Account")
     name = st.text_input("Name")
@@ -88,10 +93,10 @@ if st.session_state.get("logged_in", False):
         selected_blood_group = st.selectbox("Select Blood Group", ["A+", "B+", "O+", "AB+"])
         for bank in blood_banks:
             if selected_blood_group in bank["blood_groups"]:
-                st.write(
+                st.markdown(
                     f"""
-                    <div class="blood-bank">
-                        <h4>{bank['name']}</h4>
+                    <div class="blood-bank" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                        <h4 style="color: #E63946;">{bank['name']}</h4>
                         <p><strong>Location:</strong> {bank['location']}</p>
                         <p><strong>Contact:</strong> {bank['contact']}</p>
                     </div>
