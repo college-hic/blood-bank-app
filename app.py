@@ -34,7 +34,7 @@ def save_user_data(data):
 user_data = load_user_data()
 
 # Tabs for Navigation
-tabs = st.tabs(["Create Account", "Login", "Find Blood Banks"])
+tabs = st.tabs(["Create Account", "Login"])
 
 with tabs[0]:
     st.header("🔐 Create Account")
