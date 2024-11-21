@@ -4,14 +4,11 @@ import os
 import hashlib
 
 # Set up Streamlit page
-st.set_page_config(page_title="Blood Bank Finder", page_icon="💉", layout="wide")
+st.set_page_config(page_title="Blood Bank Finder", page_icon="💉", layout="centered")
 
-# Load custom CSS for styling
-try:
-    with open("css/style.css", "r") as css_file:
-        st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
-except FileNotFoundError:
-    st.warning("Custom styles are missing. Default styles will be used.")
+# Custom CSS for styling (Assuming this is already set up)
+with open("css/style.css", "r") as css_file:
+    st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
 
 # Helper Functions
 def hash_password(password):
@@ -27,7 +24,6 @@ def load_user_data():
 
 def save_user_data(data):
     """Saves user data to CSV."""
-    os.makedirs("user_data", exist_ok=True)
     data.to_csv("user_data/users.csv", index=False)
 
 # Initialize user data
@@ -35,6 +31,8 @@ user_data = load_user_data()
 
 # Tabs for Navigation
 tabs = st.tabs(["Create Account", "Login"])
+
+# Create Account Tab
 with tabs[0]:
     st.header("🔐 Create Account")
     name = st.text_input("Name")
@@ -52,6 +50,7 @@ with tabs[0]:
         elif username in user_data["Username"].values:
             st.error("Username already exists. Choose another one!")
         else:
+            # Save user data
             hashed_pw = hash_password(password)
             new_user = pd.DataFrame(
                 [[name, age, blood_group, username, hashed_pw]],
@@ -61,66 +60,60 @@ with tabs[0]:
             save_user_data(user_data)
             st.success("Account created successfully! You can now log in.")
 
+# Login Tab
 with tabs[1]:
-    st.header("🔓 Login")
-    login_username = st.text_input("Username", key="login_username")
-    login_password = st.text_input("Password", type="password", key="login_password")
+    if "logged_in" in st.session_state and st.session_state["logged_in"]:
+        # If logged in, show the dashboard
+        st.success(f"Welcome back, {st.session_state['name']}!")
+        
+        # Display Blood Bank Finder (Dashboard)
+        st.header("💉 Find Blood Banks")
+        # Dummy blood bank data for Karachi
+        blood_banks = [
+            {"name": "City Blood Bank", "location": "Saddar", "contact": "0301-1234567", "blood_groups": ["A+", "B+"]},
+            {"name": "LifeSaver Blood Center", "location": "Gulshan", "contact": "0302-2345678", "blood_groups": ["O+", "AB+"]},
+        ]
+        selected_blood_group = st.selectbox("Select Blood Group", ["A+", "B+", "O+", "AB+"])
+        for bank in blood_banks:
+            if selected_blood_group in bank["blood_groups"]:
+                st.write(
+                    f"""
+                    <div class="blood-bank">
+                        <h4>{bank['name']}</h4>
+                        <p><strong>Location:</strong> {bank['location']}</p>
+                        <p><strong>Contact:</strong> {bank['contact']}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
-    if st.button("Login"):
-        if not login_username or not login_password:
-            st.error("Please enter both username and password.")
-        else:
-            hashed_pw = hash_password(login_password)
-            user = user_data[
-                (user_data["Username"] == login_username)
-                & (user_data["Password"] == hashed_pw)
-            ]
+        # Show Logout Button
+        if st.button("Logout"):
+            st.session_state.clear()
+            st.experimental_rerun()
+    else:
+        # If not logged in, show the login form
+        st.header("🔓 Login")
+        login_username = st.text_input("Username", key="login_username")
+        login_password = st.text_input("Password", type="password", key="login_password")
 
-            if not user.empty:
-                # Store user information in session state
-                st.session_state["logged_in"] = True
-                st.session_state["username"] = login_username
-                st.session_state["name"] = user.iloc[0]["Name"]
-
-                # Rerun the app to load the dashboard
-                st.success("Login successful! Redirecting to your dashboard...")
-                st.experimental_rerun()
+        if st.button("Login"):
+            if not login_username or not login_password:
+                st.error("Please enter both username and password.")
             else:
-                st.error("Invalid username or password.")
+                hashed_pw = hash_password(login_password)
+                user = user_data[
+                    (user_data["Username"] == login_username)
+                    & (user_data["Password"] == hashed_pw)
+                ]
+                if not user.empty:
+                    # Store user information in session state
+                    st.session_state["logged_in"] = True
+                    st.session_state["username"] = login_username
+                    st.session_state["name"] = user.iloc[0]["Name"]
 
-
-# Dashboard for logged-in users
-if st.session_state.get("logged_in", False):
-    st.sidebar.header(f"Welcome, {st.session_state['name']}! 😊")
-    st.sidebar.button("Logout", on_click=lambda: st.session_state.clear())
-
-    st.title("📍 Blood Bank Finder Dashboard")
-
-    # Dummy blood bank data
-    blood_banks = {
-        "Saddar": [
-            {"name": "City Blood Bank", "contact": "0301-1234567", "blood_groups": ["A+", "B+"]},
-            {"name": "Quick Blood Bank", "contact": "0302-9876543", "blood_groups": ["O+", "AB+"]},
-        ],
-        "Gulshan-e-Iqbal": [
-            {"name": "LifeSaver Blood Center", "contact": "0302-2345678", "blood_groups": ["O-", "A+"]},
-            {"name": "Emergency Blood Bank", "contact": "0301-7654321", "blood_groups": ["B+", "AB+"]},
-        ],
-    }
-
-    # User selects area
-    selected_area = st.selectbox("Select an Area of Karachi", list(blood_banks.keys()))
-
-    # Display blood banks
-    st.write(f"🩸 **Blood Banks in {selected_area}:**")
-    for bank in blood_banks[selected_area]:
-        st.markdown(
-            f"""
-            <div class="blood-bank">
-                <h4>{bank['name']}</h4>
-                <p><strong>Contact:</strong> {bank['contact']}</p>
-                <p><strong>Available Blood Groups:</strong> {', '.join(bank['blood_groups'])}</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                    # Rerun the app to load the dashboard
+                    st.success("Login successful! Redirecting to your dashboard...")
+                    st.experimental_rerun()
+                else:
+                    st.error("Invalid username or password.")
