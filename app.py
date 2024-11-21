@@ -33,7 +33,7 @@ def save_user_data(data):
 # Initialize user data
 user_data = load_user_data()
 
-# Tabs for Navigation
+# Tabs for Navigation (removed "Find Blood Banks")
 tabs = st.tabs(["Create Account", "Login"])
 
 with tabs[0]:
@@ -81,25 +81,6 @@ with tabs[1]:
         else:
             st.error("Invalid username or password.")
 
+# If a user logs in, additional functionality can be added here
 if st.session_state.get("logged_in", False):
-    with tabs[2]:
-        st.header("💉 Find Blood Banks")
-        # Dummy blood bank data
-        blood_banks = [
-            {"name": "City Blood Bank", "location": "Saddar", "contact": "0301-1234567", "blood_groups": ["A+", "B+"]},
-            {"name": "LifeSaver Blood Center", "location": "Gulshan", "contact": "0302-2345678", "blood_groups": ["O+", "AB+"]},
-        ]
-
-        selected_blood_group = st.selectbox("Select Blood Group", ["A+", "B+", "O+", "AB+"])
-        for bank in blood_banks:
-            if selected_blood_group in bank["blood_groups"]:
-                st.markdown(
-                    f"""
-                    <div class="blood-bank" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
-                        <h4 style="color: #E63946;">{bank['name']}</h4>
-                        <p><strong>Location:</strong> {bank['location']}</p>
-                        <p><strong>Contact:</strong> {bank['contact']}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+    st.write("Welcome to your dashboard!")
