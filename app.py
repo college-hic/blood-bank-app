@@ -63,22 +63,31 @@ with tabs[0]:
 
 with tabs[1]:
     st.header("🔓 Login")
-    login_username = st.text_input("Username")
-    login_password = st.text_input("Password", type="password")
+    login_username = st.text_input("Username", key="login_username")
+    login_password = st.text_input("Password", type="password", key="login_password")
 
     if st.button("Login"):
-        hashed_pw = hash_password(login_password)
-        user = user_data[
-            (user_data["Username"] == login_username)
-            & (user_data["Password"] == hashed_pw)
-        ]
-        if not user.empty:
-            st.session_state["logged_in"] = True
-            st.session_state["username"] = login_username
-            st.session_state["name"] = user.iloc[0]["Name"]
-            st.experimental_rerun()
+        if not login_username or not login_password:
+            st.error("Please enter both username and password.")
         else:
-            st.error("Invalid username or password.")
+            hashed_pw = hash_password(login_password)
+            user = user_data[
+                (user_data["Username"] == login_username)
+                & (user_data["Password"] == hashed_pw)
+            ]
+
+            if not user.empty:
+                # Store user information in session state
+                st.session_state["logged_in"] = True
+                st.session_state["username"] = login_username
+                st.session_state["name"] = user.iloc[0]["Name"]
+
+                # Rerun the app to load the dashboard
+                st.success("Login successful! Redirecting to your dashboard...")
+                st.experimental_rerun()
+            else:
+                st.error("Invalid username or password.")
+
 
 # Dashboard for logged-in users
 if st.session_state.get("logged_in", False):
